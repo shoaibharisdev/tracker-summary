@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Summary Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        .controls {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .days-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .days-selector label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .days-selector select {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        
+        .refresh-btn {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.3s;
+        }
+        
+        .refresh-btn:hover {
+            background: #2980b9;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+        
+        .summary-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .summary-card h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .summary-card h2 i {
+            color: #3498db;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        
+        .date-range {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: auto;
+        }
+        
+        .date-range p {
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .date-label {
+            color: #7f8c8d;
+        }
+        
+        .date-value {
+            font-weight: 500;
+        }
+        
+        .chats-container {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .chats-container h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .chats-container h2 i {
+            color: #3498db;
+        }
+        
+        .chat-list {
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 10px;
+            width: 100%;
+        }
+        
+        .chat-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            transition: all 0.3s;
+            border: 1px solid #e9ecef;
+            width: 100%;
+        }
+        
+        .chat-item:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chat-header {
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #e9f7fe;
+            width: 100%;
+        }
+        
+        .chat-title {
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 70%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .chat-meta {
+            display: flex;
+            gap: 15px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .chat-messages {
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            width: 100%;
+        }
+        
+        .chat-item.active .chat-messages {
+            max-height: 1000px;
+            padding: 15px;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 90%;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        .user-message {
+            background: #e3f2fd;
+            margin-left: auto;
+            border-bottom-right-radius: 0;
+        }
+        
+        .assistant-message {
+            background: #f0f4f8;
+            margin-right: auto;
+            border-bottom-left-radius: 0;
+        }
+        
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+        
+        .message-content {
+            line-height: 1.5;
+            white-space: pre-line;
+        }
+        
+        .sources {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #ddd;
+        }
+        
+        .sources-title {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+        
+        .source-item {
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+            color: #3498db;
+        }
+        
+        .source-item a {
+            color: inherit;
+            text-decoration: none;
+        }
+        
+        .source-item a:hover {
+            text-decoration: underline;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #7f8c8d;
+        }
+        
+        .loading i {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: #3498db;
+        }
+        
+        .error {
+            text-align: center;
+            padding: 30px;
+            color: #e74c3c;
+            background: #fdf0ed;
+            border-radius: 10px;
+        }
+        
+        .error i {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 900px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .days-selector {
+                justify-content: space-between;
+            }
+            
+            .chat-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .chat-title {
+                max-width: 100%;
+            }
+            
+            .chat-meta {
+                align-self: flex-end;
+            }
+            
+            .message {
+                max-width: 95%;
+            }
+        }
+        
+        .toggle-icon {
+            transition: transform 0.3s;
+        }
+        
+        .chat-item.active .toggle-icon {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Chat Summary Dashboard</h1>
+            <p class="subtitle">Overview of chat activity and conversations</p>
+        </header>
+        
+        <div class="controls">
+            <div class="days-selector">
+                <label for="days-select">Show data for last:</label>
+                <select id="days-select">
+                    <option value="1">1 day</option>
+                    <option value="3" selected>3 days</option>
+                    <option value="7">7 days</option>
+                    <option value="14">14 days</option>
+                    <option value="30">30 days</option>
+                </select>
+            </div>
+            <button class="refresh-btn" id="refresh-btn">
+                <i class="fas fa-sync-alt"></i> Refresh Data
+            </button>
+        </div>
+        
+        <div class="dashboard">
+            <div class="summary-card">
+                <h2><i class="fas fa-chart-bar"></i> Summary</h2>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-chats">0</div>
+                        <div class="stat-label">Total Chats</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="total-messages">0</div>
+                        <div class="stat-label">Total Messages</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="user-messages">0</div>
+                        <div class="stat-label">User Messages</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="assistant-messages">0</div>
+                        <div class="stat-label">Assistant Messages</div>
+                    </div>
+                </div>
+                <div class="date-range">
+                    <p>
+                        <span class="date-label">Start Date:</span>
+                        <span class="date-value" id="date-start">-</span>
+                    </p>
+                    <p>
+                        <span class="date-label">End Date:</span>
+                        <span class="date-value" id="date-end">-</span>
+                    </p>
+                    <p>
+                        <span class="date-label">Days:</span>
+                        <span class="date-value" id="days">-</span>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="chats-container">
+                <h2><i class="fas fa-comments"></i> Recent Chats</h2>
+                <div class="chat-list" id="chat-list">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading chat data...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_BASE_URL = 'https://api.taxgenii.lodgeit.net.au/hg/api/v1/widget-report';
+        
+        // DOM Elements
+        const chatList = document.getElementById('chat-list');
+        const totalChats = document.getElementById('total-chats');
+        const totalMessages = document.getElementById('total-messages');
+        const userMessages = document.getElementById('user-messages');
+        const assistantMessages = document.getElementById('assistant-messages');
+        const dateStart = document.getElementById('date-start');
+        const dateEnd = document.getElementById('date-end');
+        const days = document.getElementById('days');
+        const daysSelect = document.getElementById('days-select');
+        const refreshBtn = document.getElementById('refresh-btn');
+        
+        // Current days setting
+        let currentDays = 3;
+        
+        // Format date for display
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        // Format date without time
+        function formatDateOnly(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric'
+            });
+        }
+        
+        // Create message element
+        function createMessageElement(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${message.role}-message`;
+            
+            const messageHeader = document.createElement('div');
+            messageHeader.className = 'message-header';
+            messageHeader.innerHTML = `
+                <span>${message.role === 'user' ? 'User' : 'Assistant'}</span>
+                <span>${formatDate(message.created_at)}</span>
+            `;
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.textContent = message.content;
+            
+            messageDiv.appendChild(messageHeader);
+            messageDiv.appendChild(messageContent);
+            
+            // Add sources if available
+            if (message.sources && message.sources.length > 0) {
+                const sourcesDiv = document.createElement('div');
+                sourcesDiv.className = 'sources';
+                
+                const sourcesTitle = document.createElement('div');
+                sourcesTitle.className = 'sources-title';
+                sourcesTitle.textContent = 'Sources:';
+                sourcesDiv.appendChild(sourcesTitle);
+                
+                message.sources.forEach(source => {
+                    const sourceItem = document.createElement('div');
+                    sourceItem.className = 'source-item';
+                    
+                    const sourceLink = document.createElement('a');
+                    sourceLink.href = source.url;
+                    sourceLink.target = '_blank';
+                    sourceLink.textContent = source.title;
+                    
+                    sourceItem.appendChild(sourceLink);
+                    sourcesDiv.appendChild(sourceItem);
+                });
+                
+                messageDiv.appendChild(sourcesDiv);
+            }
+            
+            return messageDiv;
+        }
+        
+        // Create chat item element
+        function createChatElement(chat) {
+            const chatItem = document.createElement('div');
+            chatItem.className = 'chat-item';
+            
+            const chatHeader = document.createElement('div');
+            chatHeader.className = 'chat-header';
+            
+            const chatTitle = document.createElement('div');
+            chatTitle.className = 'chat-title';
+            chatTitle.innerHTML = `
+                <i class="fas fa-comment"></i>
+                ${chat.title}
+            `;
+            
+            const chatMeta = document.createElement('div');
+            chatMeta.className = 'chat-meta';
+            chatMeta.innerHTML = `
+                <span><i class="far fa-calendar"></i> ${formatDateOnly(chat.created_at)}</span>
+                <span><i class="far fa-comment-alt"></i> ${chat.message_count} messages</span>
+            `;
+            
+            const toggleIcon = document.createElement('i');
+            toggleIcon.className = 'fas fa-chevron-down toggle-icon';
+            
+            chatHeader.appendChild(chatTitle);
+            chatHeader.appendChild(chatMeta);
+            chatHeader.appendChild(toggleIcon);
+            
+            const chatMessages = document.createElement('div');
+            chatMessages.className = 'chat-messages';
+            
+            chat.messages.forEach(message => {
+                chatMessages.appendChild(createMessageElement(message));
+            });
+            
+            chatItem.appendChild(chatHeader);
+            chatItem.appendChild(chatMessages);
+            
+            // Toggle chat expansion
+            chatHeader.addEventListener('click', () => {
+                chatItem.classList.toggle('active');
+            });
+            
+            return chatItem;
+        }
+        
+        // Build API URL with query parameters
+        function buildApiUrl(days) {
+            return `${API_BASE_URL}?days=${days}`;
+        }
+        
+        // Fetch data from API
+        async function fetchData(days = 3) {
+            try {
+                const url = buildApiUrl(days);
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                displayData(data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                displayError(error.message);
+            }
+        }
+        
+        // Display error message
+        function displayError(message) {
+            chatList.innerHTML = `
+                <div class="error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Error Loading Data</h3>
+                    <p>${message}</p>
+                    <button onclick="fetchData(currentDays)" style="margin-top: 15px; padding: 10px 20px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                        Try Again
+                    </button>
+                </div>
+            `;
+        }
+        
+        // Display data in the UI
+        function displayData(data) {
+            // Update summary stats
+            totalChats.textContent = data.summary.total_chats;
+            totalMessages.textContent = data.summary.total_messages;
+            userMessages.textContent = data.summary.total_user_messages;
+            assistantMessages.textContent = data.summary.total_assistant_messages;
+            dateStart.textContent = formatDate(data.summary.date_range_start);
+            dateEnd.textContent = formatDate(data.summary.date_range_end);
+            days.textContent = data.summary.days;
+            
+            // Clear loading message
+            chatList.innerHTML = '';
+            
+            // Add chat items
+            if (data.chats && data.chats.length > 0) {
+                data.chats.forEach(chat => {
+                    chatList.appendChild(createChatElement(chat));
+                });
+            } else {
+                chatList.innerHTML = '<div class="loading"><p>No chats found for the selected period.</p></div>';
+            }
+        }
+        
+        // Event Listeners
+        daysSelect.addEventListener('change', (e) => {
+            currentDays = parseInt(e.target.value);
+            fetchData(currentDays);
+        });
+        
+        refreshBtn.addEventListener('click', () => {
+            fetchData(currentDays);
+        });
+        
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchData(currentDays);
+        });
+    </script>
+</body>
+</html>
